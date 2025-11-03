@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demo</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        #playWind {
+            float: left;
+            display: inline-block;
+        }
+        body {
+            margin: 10px;
+        }
+        button {
+            margin: 10px 10px;
+            padding:2px 5px;
+        }
+        .button_box {
+           float: left;
+        }
+        .button_box div {
+            margin: 10px 10px;
+        }
+        #volume {
+            position: relative;
+            top: 5px;
+        }
+        .items {
+            border: 1px solid #444444;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="playWind" style="width: 600px; height: 400px;"></div>
+    <div class="button_box">
+        <div class="items">
+			<div>设备网关</div>
+				&nbsp;&nbsp;访问地址: <input type="text" id="ipPort" value="10.19.166.137:81" />
+				&nbsp;&nbsp;用户名: <input type="text" id="username" value="admin" />
+				&nbsp;&nbsp;密码: <input type="text" id="password" value="hik12345" />
+                &nbsp;&nbsp;<button type="button" onClick="login()">登录</button>
+            <div class="items">			
+				<div>预览</div>
+				&nbsp;&nbsp;预览URL: <input style="width:600px; height=20px;" type="text" id="previewUrl" value="rtsp://10.19.166.137:554/dac/realplay/8E93887C-0916-40CD-A0B6-FF0057FAE2D21/MAIN/TCP?streamform=rtp" />
+				<br />
+				<button type="button" onClick="realplay()">开始预览</button>
+				<button type="button" onClick="stopPlay()">停止预览</button>
+				<button type="button" onClick="stopPlayAll()">全部停止</button>
+				<button type="button" onclick="record()">开始录像</button>
+				<button type="button" onclick="stopRecord()">停止录像</button>
+				<button type="button" onClick="capturePicture()">抓图</button>
+				</div>
+
+			<div class="items">
+				<div>回放</div>
+				&nbsp;&nbsp;回放URL: <input style="width:800px; height=20px;" type="text" id="playbackUrl" value="rtsp://172.7.203.17:554/dac/playback/camera/1F16052F-FD9D-4E63-9164-104D4D6109B01/SUB/TCP?starttime=20210413T191007Z&endtime=20210414T121007Z&streamform=rtp" />
+				<br />
+				<button type="button" onClick="playback()">开始回放</button>
+				<button type="button" onClick="stopPlay()">停止回放</button>
+				<button type="button" onClick="fast()">快放</button>
+				<button type="button" onClick="slow()">慢放</button>
+				<button type="button" onclick="record()">开始剪辑</button>
+				<button type="button" onclick="stopRecord()">停止剪辑</button><br />
+			</div>
+			
+			<div class="items">
+				<div>对讲</div>
+                <div>&nbsp;&nbsp;设备索引: <input style="width:400px; height=20px;" type="text" id="devIndex" value="8E93887C-0916-40CD-A0B6-FF0057FAE2D2" />
+                </div>
+                <div>&nbsp;&nbsp;语音对讲通道: <select style="width:80px; height=20px;" id="voicetalkChannel"></select></div>
+                <!-- &nbsp;&nbsp;Get a Two-Way Audio Channel URL: <input style="width:800px; height=20px;" type="text" id="voicetalkChannelUrl" value="http://10.19.166.137:81/ISAPI/System/TwoWayAudio/channels?devIndex=8E93887C-0916-40CD-A0B6-FF0057FAE2D2" /> -->
+                <!-- &nbsp;&nbsp;Get a Two-Way Audio Params URL: <input style="width:800px; height=20px;" type="text" id="voicetalkUrl" value="http://10.19.166.137:81/ISAPI/System/TwoWayAudio/channels/1?format=json&devIndex=8E93887C-0916-40CD-A0B6-FF0057FAE2D2" /> -->
+				<!-- <div>&nbsp;&nbsp;Start Two-Way Audio URL: <input style="width:800px; height=20px;" type="text" id="voicetalkUrl" value="rtsp://10.19.166.137:554/dac/talk/8E93887C-0916-40CD-A0B6-FF0057FAE2D21/TCP" /> -->
+                <!-- </div> -->
+				<br />
+                <button type="button" onClick="getVoiceChannel()">获取语音对讲通道</button>
+				<button type="button" onClick="voicetalk()">开始对讲</button>
+				<button type="button" onClick="stopvoicetalk()">停止对讲</button>
+				<br />
+			</div>
+
+			<div class="items">
+			    <div>声音</div>
+				<button type="button" onClick="openSound()">打开声音</button>
+				<button type="button" onClick="closeSound()">关闭声音</button>
+			</div>
+
+			<div class="items">
+				<div>插件设置</div>
+				<button type="button" onClick="arrangeWindow(1)">1x1</button>
+				<button type="button" onClick="arrangeWindow(2)">2x2</button>
+				<button type="button" onClick="fullSreen()">全屏（所有窗口）</button>
+				<button type="button" onClick="checkUpdate()">检查插件更新</button>
+                <table cellpadding="0" cellspacing="3" border="0">
+                    <tr>
+                        <td class="tt">抓图文件格式</td>
+                        <td>
+                            <select id="captureFileFormat" name="captureFileFormat" class="sel">
+                                <option value="0">JPEG</option>
+                                <option value="1">BMP</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tt">录像文件保存路径</td>
+                        <td colspan="3"><input id="recordPath" type="text"  style="width:400px; height=20px;" />&nbsp;<button type="button" onclick="clickOpenFileDlg('recordPath');">浏览</button></td>
+                    </tr>
+                    <tr>
+                        <td class="tt">预览抓图保存路径</td>
+                        <td colspan="3"><input id="previewPicPath" type="text"  style="width:400px; height=20px;" />&nbsp;<button type="button" onclick="clickOpenFileDlg('previewPicPath');">浏览</button></td>
+                    </tr>
+                    <tr>
+                        <td class="tt">回放抓图保存路径</td>
+                        <td colspan="3"><input id="playbackPicPath" type="text"  style="width:400px; height=20px;" />&nbsp;<button type="button" onclick="clickOpenFileDlg('playbackPicPath');">浏览</button></td>
+                    </tr>
+                    <tr>
+                        <td class="tt">回放剪辑保存路径</td>
+                        <td colspan="3"><input id="playbackFilePath" type="text"  style="width:400px; height=20px;" />&nbsp;<button type="button" onclick="clickOpenFileDlg('playbackFilePath');">浏览</button></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4"><button type="button" onclick="clickGetLocalCfg();">获取</button>&nbsp;<button type="button" onclick="clickSetLocalCfg();">设置</button>&nbsp;&nbsp;修改参数后，需要刷新界面后生效。</td>
+                    </tr>
+                </table>
+			</div>
+			<div class="items">
+				<div>提示</div>
+				<div id="prompt" style="color:red"></div>
+			</div>
+		</div>
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script id="videonode" src="../codebase/webVideoCtrl.js"></script>
+    <script>
+
+    var iWind = 0; //the selected window
+    function msgLog(szMsg) {
+        $("#prompt").html("<div>" + szMsg + "</div>");
+    }
+	function initPlugin() {
+        WebVideoCtrl.I_InitPlugin({
+            bWndFull: true,
+            iWndowType: 1,
+            cbSelWnd: function (xmlDoc) {
+                iWind = parseInt($(xmlDoc).find("SelectWnd").eq(0).text(), 10);
+                msgLog("被选中窗口的索引: " + iWind);
+            },
+            cbEvent: function (iEventType, iParam1, iParam2) {
+                msgLog(iEventType, iParam1, iParam2);
+            },
+            cbInitPluginComplete: function () {
+                WebVideoCtrl.I_InsertOBJECTPlugin("playWind").then(() => {
+                    WebVideoCtrl.I_CheckPluginVersion().then((bFlag) => {
+                        if (bFlag) {
+                            alert("请更新HCWebSDKPlugin到最新版本");
+                        }
+                    });
+                }, () => {
+                    alert("HCWebSDKPlugin初始化失败");
+                });
+            }
+        });
+    }
+    initPlugin();
+	
+    function login () {
+        var szIPPort = $("#ipPort").val(),
+        szIP = "",
+        szPort = "",
+        szUsername = $("#username").val(),
+        szPassword = $("#password").val();
+
+        if ("" == szIPPort || "" == szUsername || "" == szPassword) {
+            return;
+        }
+
+        szIP = szIPPort.split(":")[0];
+        szPort = szIPPort.split(":")[1];
+        WebVideoCtrl.I_Login(szIP, 1, szPort, szUsername, szPassword, {
+            timeout: 3000
+        }).then(() => {
+            msgLog("登录成功");
+        }, (oError) => {
+            msgLog("登录失败");
+        });
+    }
+
+    function realplay () {
+        var szDeviceIdentify = $("#ipPort").val().split(":")[0];
+        WebVideoCtrl.I_StartPlay(szDeviceIdentify, {
+            szUrl: $("#previewUrl").val()
+        }).then(() => {
+            msgLog("预览成功");
+        }, (oError) => {
+            msgLog("预览失败: " + oError.errorCode + ":" + oError.errorMsg);
+        });
+    }
+
+    function playback () {
+        var szDeviceIdentify = $("#ipPort").val().split(":")[0];
+        var szUrl = $("#playbackUrl").val();
+        var szStartTime = szUrl.substring(szUrl.indexOf("starttime=") + 10, szUrl.indexOf("starttime=") + 26);
+        var szEndTime = szUrl.substring(szUrl.indexOf("endtime=") + 8, szUrl.indexOf("endtime=") + 24);
+        WebVideoCtrl.I_StartPlay(szDeviceIdentify, {
+            szUrl: szUrl,
+            startTime: szStartTime,
+            endTime: szEndTime
+        }).then(() => {
+            msgLog("回放成功");
+        }, (oError) => {
+            msgLog("回放失败");
+        });
+    }
+
+    var aVoiceChannelInfo = [];
+    function getVoiceChannel () {
+        var szDeviceIdentify = $("#ipPort").val().split(":")[0];
+        var szUrl = "ISAPI/System/TwoWayAudio/channels?devIndex=" + $("#devIndex").val();
+        WebVideoCtrl.I_SendHTTPRequest(szDeviceIdentify, szUrl, {
+            type: "GET"
+        }).then((oData) => {
+            aVoiceChannelInfo.length = 0;
+            var szOptions = "";
+            var szID = "";
+            var szAudioCompressionType = "";
+            $(oData).find("TwoWayAudioChannel").each((i, val) => {
+                szID = $(val).find("id").eq(0).text();
+                szAudioCompressionType = $(val).find("audioCompressionType").eq(0).text();
+                aVoiceChannelInfo.push({
+                    id: szID,
+                    audioCompressionType: szAudioCompressionType
+                });
+                szOptions += "<option value='" + szID + "'>" + szID + "</option>"
+            });
+            if (szOptions) {
+                $("#voicetalkChannel").html(szOptions);
+                $("#voicetalkChannel").val(aVoiceChannelInfo[0].id);
+            }
+        }, (oError) => {
+            msgLog("获取对讲通道失败");
+        });
+    }
+	
+	function voicetalk () {
+        var szDeviceIdentify = $("#ipPort").val().split(":")[0];
+        var szUrl = "ISAPI/System/streamMedia?format=json&devIndex=" + $("#devIndex").val();
+        var szData = '{"StreamInfo": {"id": "' + $("#voicetalkChannel").val() + '","method": "twoWayAudio"}}';
+        var szSelectAuidoChannelID = $("#voicetalkChannel").val();
+        var iAudioType = 1;
+        var szAudioCompressionType = "";
+        aVoiceChannelInfo.forEach((val) => {
+            if (szSelectAuidoChannelID === val.id) {
+                szAudioCompressionType = val.audioCompressionType;
+            }
+        });
+        if ("G.711alaw" == szAudioCompressionType) {
+            iAudioType = 1;
+        } else if ("G.711ulaw" == szAudioCompressionType) {
+            iAudioType = 2;
+        } else if ("G.722.1" == szAudioCompressionType) {
+            iAudioType = 3;
+        }
+        WebVideoCtrl.I_SendHTTPRequest(szDeviceIdentify, szUrl, {
+            type: "POST",
+            data: szData,
+        }).then((oData) => {
+            var szVoiceUrl = oData.MediaAccessInfo.URL;
+            WebVideoCtrl.I_StartAudioPlay(szDeviceIdentify, {
+                szUrl: szVoiceUrl,
+                iAudioType: iAudioType
+            }).then(() => {
+                msgLog("对讲成功");
+            }, (oError) => {
+                msgLog("对讲失败");
+            });
+        }, (oError) => {
+            msgLog("对讲失败");
+        });
+    }
+	
+    function stopvoicetalk () {
+        WebVideoCtrl.I_StopAudioPlay().then(() => {
+            msgLog("停止对讲成功");
+        }, () => {
+            msgLog("停止对讲失败");
+        });
+    }
+	
+    function stopPlay () {
+        WebVideoCtrl.I_Stop(iWind).then(() => {
+            msgLog("停止播放成功");
+        }, (oError) => {
+            msgLog("停止播放失败: " + iWind);
+        });
+    }
+
+    function arrangeWindow (iWinType) {
+        WebVideoCtrl.I_ChangeWndNum(iWinType).then(() => {
+            msgLog("切换窗口分屏成功");
+        }, (oError) => {
+            msgLog("切换窗口分屏失败");
+        });
+    }
+
+    function slow () {
+        WebVideoCtrl.I_PlaySlow(iWind).then(() => {
+            msgLog("慢放成功");
+        }, (oError) => {
+            msgLog("慢放失败: " + iWind);
+        });
+    }
+
+    function fast () {
+        WebVideoCtrl.I_PlayFast(iWind).then(() => {
+            msgLog("快放成功");
+        }, (oError) => {
+            msgLog("快放失败: " + iWind);
+        });
+    }
+
+    function openSound () {
+        WebVideoCtrl.I_OpenSound(iWind).then(() => {
+            msgLog("开启声音成功");
+        }, (oError) => {
+            msgLog("开启声音失败: " + iWind);
+        });
+    }
+    
+	function closeSound () {
+        WebVideoCtrl.I_CloseSound(iWind).then(() => {
+            msgLog("关闭声音成功");
+        }, (oError) => {
+            msgLog("关闭声音失败: " + iWind);
+        });
+    }
+
+    async function capturePicture() {
+        var szFileName = "img" + "_" + new Date().getTime();
+        var oLocalConfig = await WebVideoCtrl.I_GetLocalCfg();
+        var szCaptureFileFormat = "0";
+        if (oLocalConfig) {
+            szCaptureFileFormat = oLocalConfig.captureFileFormat;
+        }
+        szFileName += ("0" === szCaptureFileFormat) ? ".jpg": ".bmp";
+        WebVideoCtrl.I_CapturePic(szFileName, iWind).then(() => {
+            msgLog("抓图成功");
+        }, (oError) => {
+            msgLog("抓图失败: " + iWind);
+        });
+    }
+    
+	function stopPlayAll () {
+        WebVideoCtrl.I_StopAllPlay().then(() => {
+            msgLog("停止全部播放成功");
+        }, (oError) => {
+            msgLog("停止全部播放失败");
+        });
+    }
+    
+	function dateFormat(oDate, fmt) {
+        var o = {
+            "M+": oDate.getMonth() + 1, 
+            "d+": oDate.getDate(), 
+            "h+": oDate.getHours(), 
+            "m+": oDate.getMinutes(), 
+            "s+": oDate.getSeconds(), 
+            "q+": Math.floor((oDate.getMonth() + 3) / 3), 
+            "S": oDate.getMilliseconds()
+        };
+        if (/(y+)/.test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (oDate.getFullYear() + "").substr(4 - RegExp.$1.length));
+        }
+        for (var k in o) {
+            if (new RegExp("(" + k + ")").test(fmt)) {
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            }
+        }
+        return fmt;
+    }
+    
+	function record() {
+        var szTime = dateFormat(new Date(), "yyyyMMddhhmmssS");
+        var szFileName = "10.17.137.229_01_" + szTime;
+        WebVideoCtrl.I_StartRecord(szFileName, iWind).then(() => {
+            msgLog("开始录像成功");
+        }, (oError) => {
+            msgLog("开始录像失败");
+        });
+    }
+
+    function stopRecord() {
+        WebVideoCtrl.I_StopRecord(iWind).then(() => {
+            msgLog("停止录像成功");
+        }, (oError) => {
+            msgLog("停止录像失败");
+        });
+    }
+    
+	function fullSreen() {
+        WebVideoCtrl.I_FullScreen(true).then(() => {
+            msgLog("全屏成功");
+        }, (oError) => {
+            msgLog("全屏失败");
+        });
+    }
+	
+	function checkUpdate () {
+        WebVideoCtrl.I_CheckPluginVersion().then((bFlag) => {
+            if (bFlag) {
+                msgLog("HCWebSDKPlugin发现有新版本");
+            } else {
+                msgLog("HCWebSDKPlugin当前已是最新版本");
+            }
+        });
+    }
+
+    function clickOpenFileDlg(szElemID) {
+        WebVideoCtrl.I_OpenFileDlg(0).then((szDirPath) => {
+            if (szDirPath != -1 && szDirPath != "" && szDirPath != null) {
+                $("#" + szElemID).val(szDirPath);
+            }
+        }, (oError) => {
+            msgLog("打开文件路径失败");
+        });
+    }
+
+    var g_oLocalConfig = null;
+    function clickGetLocalCfg() {
+        WebVideoCtrl.I_GetLocalCfg().then((oLocalConfig) => {
+            g_oLocalConfig = oLocalConfig;
+            $("#recordPath").val(oLocalConfig.recordPath);
+            $("#previewPicPath").val(oLocalConfig.capturePath);
+            $("#playbackPicPath").val(oLocalConfig.playbackPicPath);
+            $("#playbackFilePath").val(oLocalConfig.playbackFilePath);
+            $("#captureFileFormat").val(oLocalConfig.captureFileFormat);
+            msgLog("插件配置获取成功");
+        }, (oError) => {
+            msgLog("插件配置获取失败");
+        });
+    }
+
+    function clickSetLocalCfg() {
+        g_oLocalConfig.recordPath = $("#recordPath").val();
+        g_oLocalConfig.capturePath = $("#previewPicPath").val();
+        g_oLocalConfig.playbackPicPath = $("#playbackPicPath").val();
+        g_oLocalConfig.playbackFilePath = $("#playbackFilePath").val();
+        g_oLocalConfig.captureFileFormat = $("#captureFileFormat").val();
+        WebVideoCtrl.I_SetLocalCfg(g_oLocalConfig).then(() => {
+            msgLog("插件配置设置成功");
+        }, (oError) => {
+            msgLog("插件配置设置失败");
+        });
+    }
+
+    window.onresize = function () {
+        WebVideoCtrl.I_Resize(600, 400);
+    };
+    </script>
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Demo</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+            font-size: 12px;
+        }
+
+        #playWind {
+            float: left;
+            display: inline-block;
+        }
+        body {
+            margin: 10px;
+        }
+        button {
+            margin: 10px 10px;
+            padding:2px 5px;
+        }
+        .button_box {
+           float: left;
+        }
+        .button_box div {
+            margin: 10px 10px;
+        }
+        #volume {
+            position: relative;
+            top: 5px;
+        }
+        .items {
+            border: 1px solid #444444;
+        }
+
+    </style>
+</head>
+<body>
+    <div id="playWind" style="width: 600px; height: 400px;"></div>
+    <div class="button_box">
+        <div class="items">
+			<div>Gateway</div>
+				&nbsp;&nbsp;Access URL: <input type="text" id="ipPort" value="10.19.166.137:81" />
+				&nbsp;&nbsp;User Name: <input type="text" id="username" value="admin" />
+				&nbsp;&nbsp;Password: <input type="text" id="password" value="hik12345" />
+                &nbsp;&nbsp;<button type="button" onClick="login()">Login</button>
+            <div class="items">			
+				<div>Live View</div>
+				&nbsp;&nbsp;Live View URL: <input style="width:600px; height=20px;" type="text" id="previewUrl" value="rtsp://10.19.166.137:554/dac/realplay/8E93887C-0916-40CD-A0B6-FF0057FAE2D21/MAIN/TCP?streamform=rtp" />
+				<br />
+				<button type="button" onClick="realplay()">Start Live View</button>
+				<button type="button" onClick="stopPlay()">Stop Live View</button>
+				<button type="button" onClick="stopPlayAll()">Stop All</button>
+				<button type="button" onclick="record()">Start Recording</button>
+				<button type="button" onclick="stopRecord()">Stop Recording</button>
+				<button type="button" onClick="capturePicture()">Capture</button>
+				</div>
+
+			<div class="items">
+				<div>Playback</div>
+				&nbsp;&nbsp;Playback URL: <input style="width:800px; height=20px;" type="text" id="playbackUrl" value="rtsp://172.7.203.17:554/dac/playback/camera/1F16052F-FD9D-4E63-9164-104D4D6109B01/SUB/TCP?starttime=20210413T191007Z&endtime=20210414T121007Z&streamform=rtp" />
+				<br />
+				<button type="button" onClick="playback()">Start Playback</button>
+				<button type="button" onClick="stopPlay()">Stop Playback</button>
+				<button type="button" onClick="fast()">Fast Forward</button>
+				<button type="button" onClick="slow()">Slow Forward</button>
+				<button type="button" onclick="record()">Start Recording</button>
+				<button type="button" onclick="stopRecord()">Stop Recording</button><br />
+			</div>
+			
+			<div class="items">
+				<div>Voicetalk</div>
+                <div>&nbsp;&nbsp;Device Index: <input style="width:400px; height=20px;" type="text" id="devIndex" value="8E93887C-0916-40CD-A0B6-FF0057FAE2D2" />
+                </div>
+                <div>&nbsp;&nbsp;Two-Way Audio Channel: <select style="width:80px; height=20px;" id="voicetalkChannel"></select></div>
+                <!-- &nbsp;&nbsp;Get a Two-Way Audio Channel URL: <input style="width:800px; height=20px;" type="text" id="voicetalkChannelUrl" value="http://10.19.166.137:81/ISAPI/System/TwoWayAudio/channels?devIndex=8E93887C-0916-40CD-A0B6-FF0057FAE2D2" /> -->
+                <!-- &nbsp;&nbsp;Get a Two-Way Audio Params URL: <input style="width:800px; height=20px;" type="text" id="voicetalkUrl" value="http://10.19.166.137:81/ISAPI/System/TwoWayAudio/channels/1?format=json&devIndex=8E93887C-0916-40CD-A0B6-FF0057FAE2D2" /> -->
+				<!-- <div>&nbsp;&nbsp;Start Two-Way Audio URL: <input style="width:800px; height=20px;" type="text" id="voicetalkUrl" value="rtsp://10.19.166.137:554/dac/talk/8E93887C-0916-40CD-A0B6-FF0057FAE2D21/TCP" /> -->
+                <!-- </div> -->
+				<br />
+                <button type="button" onClick="getVoiceChannel()">Get Two-Way Audio Channel</button>
+				<button type="button" onClick="voicetalk()">Start Voicetalk</button>
+				<button type="button" onClick="stopvoicetalk()">Stop Voicetalk</button>
+				<br />
+			</div>
+
+			<div class="items">
+			    <div>Audio</div>
+				<button type="button" onClick="openSound()">Turn on Audio</button>
+				<button type="button" onClick="closeSound()">Turn off Audio</button>
+			</div>
+
+			<div class="items">
+				<div>Plugin</div>
+				<button type="button" onClick="arrangeWindow(1)">1x1</button>
+				<button type="button" onClick="arrangeWindow(2)">2x2</button>
+				<button type="button" onClick="fullSreen()">Full Screen (All Windows)</button>
+				<button type="button" onClick="checkUpdate()">Check Plugin Update</button>
+                <table cellpadding="0" cellspacing="3" border="0">
+                    <tr>
+                        <td class="tt">Snapshot format</td>
+                        <td>
+                            <select id="captureFileFormat" name="captureFileFormat" class="sel">
+                                <option value="0">JPEG</option>
+                                <option value="1">BMP</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tt">Save record files to</td>
+                        <td colspan="3"><input id="recordPath" type="text"  style="width:400px; height=20px;" />&nbsp;<button type="button" onclick="clickOpenFileDlg('recordPath');">Browse</button></td>
+                    </tr>
+                    <tr>
+                        <td class="tt">Save snapshots in live view to</td>
+                        <td colspan="3"><input id="previewPicPath" type="text"  style="width:400px; height=20px;" />&nbsp;<button type="button" onclick="clickOpenFileDlg('previewPicPath');">Browse</button></td>
+                    </tr>
+                    <tr>
+                        <td class="tt">Save snapshots when playback to</td>
+                        <td colspan="3"><input id="playbackPicPath" type="text"  style="width:400px; height=20px;" />&nbsp;<button type="button" onclick="clickOpenFileDlg('playbackPicPath');">Browse</button></td>
+                    </tr>
+                    <tr>
+                        <td class="tt">Save clips to</td>
+                        <td colspan="3"><input id="playbackFilePath" type="text"  style="width:400px; height=20px;" />&nbsp;<button type="button" onclick="clickOpenFileDlg('playbackFilePath');">Browse</button></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4"><button type="button" onclick="clickGetLocalCfg();">Get</button>&nbsp;<button type="button" onclick="clickSetLocalCfg();">Set</button>&nbsp;&nbsp;After modifying parameters, you need to refresh the interface to take effect.</td>
+                    </tr>
+                </table>
+			</div>
+			<div class="items">
+				<div>Prompt</div>
+				<div id="prompt" style="color:red"></div>
+			</div>
+		</div>
+    <script src="../jquery-1.7.1.min.js"></script>
+    <script id="videonode" src="../codebase/webVideoCtrl.js"></script>
+    <script>
+
+    var iWind = 0; //the selected window
+    function msgLog(szMsg) {
+        $("#prompt").html("<div>" + szMsg + "</div>");
+    }
+	function initPlugin() {
+        WebVideoCtrl.I_InitPlugin({
+            bWndFull: true,
+            iWndowType: 1,
+            cbSelWnd: function (xmlDoc) {
+                iWind = parseInt($(xmlDoc).find("SelectWnd").eq(0).text(), 10);
+                msgLog("the window is selected: " + iWind);
+            },
+            cbEvent: function (iEventType, iParam1, iParam2) {
+                msgLog(iEventType, iParam1, iParam2);
+            },
+            cbInitPluginComplete: function () {
+                WebVideoCtrl.I_InsertOBJECTPlugin("playWind").then(() => {
+                    WebVideoCtrl.I_CheckPluginVersion().then((bFlag) => {
+                        if (bFlag) {
+                            alert("Please update the HCWebSDKPlugin to the latest version.");
+                        }
+                    });
+                }, () => {
+                    alert("HCWebSDKPlugin initialization failed.");
+                });
+            }
+        });
+    }
+    initPlugin();
+	
+    function login () {
+        var szIPPort = $("#ipPort").val(),
+        szIP = "",
+        szPort = "",
+        szUsername = $("#username").val(),
+        szPassword = $("#password").val();
+
+        if ("" == szIPPort || "" == szUsername || "" == szPassword) {
+            return;
+        }
+
+        szIP = szIPPort.split(":")[0];
+        szPort = szIPPort.split(":")[1];
+        WebVideoCtrl.I_Login(szIP, 1, szPort, szUsername, szPassword, {
+            timeout: 3000
+        }).then(() => {
+            msgLog("login success");
+        }, (oError) => {
+            msgLog("login failed");
+        });
+    }
+
+    function realplay () {
+        var szDeviceIdentify = $("#ipPort").val().split(":")[0];
+        WebVideoCtrl.I_StartPlay(szDeviceIdentify, {
+            szUrl: $("#previewUrl").val()
+        }).then(() => {
+            msgLog("realplay success");
+        }, (oError) => {
+            msgLog("realplay failed: " + oError.errorCode + ":" + oError.errorMsg);
+        });
+    }
+
+    function playback () {
+        var szDeviceIdentify = $("#ipPort").val().split(":")[0];
+        var szUrl = $("#playbackUrl").val();
+        var szStartTime = szUrl.substring(szUrl.indexOf("starttime=") + 10, szUrl.indexOf("starttime=") + 26);
+        var szEndTime = szUrl.substring(szUrl.indexOf("endtime=") + 8, szUrl.indexOf("endtime=") + 24);
+        WebVideoCtrl.I_StartPlay(szDeviceIdentify, {
+            szUrl: szUrl,
+            startTime: szStartTime,
+            endTime: szEndTime
+        }).then(() => {
+            msgLog("playback success");
+        }, (oError) => {
+            msgLog("playback failed");
+        });
+    }
+
+    var aVoiceChannelInfo = [];
+    function getVoiceChannel () {
+        var szDeviceIdentify = $("#ipPort").val().split(":")[0];
+        var szUrl = "ISAPI/System/TwoWayAudio/channels?devIndex=" + $("#devIndex").val();
+        WebVideoCtrl.I_SendHTTPRequest(szDeviceIdentify, szUrl, {
+            type: "GET"
+        }).then((oData) => {
+            aVoiceChannelInfo.length = 0;
+            var szOptions = "";
+            var szID = "";
+            var szAudioCompressionType = "";
+            $(oData).find("TwoWayAudioChannel").each((i, val) => {
+                szID = $(val).find("id").eq(0).text();
+                szAudioCompressionType = $(val).find("audioCompressionType").eq(0).text();
+                aVoiceChannelInfo.push({
+                    id: szID,
+                    audioCompressionType: szAudioCompressionType
+                });
+                szOptions += "<option value='" + szID + "'>" + szID + "</option>"
+            });
+            if (szOptions) {
+                $("#voicetalkChannel").html(szOptions);
+                $("#voicetalkChannel").val(aVoiceChannelInfo[0].id);
+            }
+        }, (oError) => {
+            msgLog("get Two-Way audio channel failed");
+        });
+    }
+	
+	function voicetalk () {
+        var szDeviceIdentify = $("#ipPort").val().split(":")[0];
+        var szUrl = "ISAPI/System/streamMedia?format=json&devIndex=" + $("#devIndex").val();
+        var szData = '{"StreamInfo": {"id": "' + $("#voicetalkChannel").val() + '","method": "twoWayAudio"}}';
+        var szSelectAuidoChannelID = $("#voicetalkChannel").val();
+        var iAudioType = 1;
+        var szAudioCompressionType = "";
+        aVoiceChannelInfo.forEach((val) => {
+            if (szSelectAuidoChannelID === val.id) {
+                szAudioCompressionType = val.audioCompressionType;
+            }
+        });
+        if ("G.711alaw" == szAudioCompressionType) {
+            iAudioType = 1;
+        } else if ("G.711ulaw" == szAudioCompressionType) {
+            iAudioType = 2;
+        } else if ("G.722.1" == szAudioCompressionType) {
+            iAudioType = 3;
+        }
+        WebVideoCtrl.I_SendHTTPRequest(szDeviceIdentify, szUrl, {
+            type: "POST",
+            data: szData,
+        }).then((oData) => {
+            var szVoiceUrl = oData.MediaAccessInfo.URL;
+            WebVideoCtrl.I_StartAudioPlay(szDeviceIdentify, {
+                szUrl: szVoiceUrl,
+                iAudioType: iAudioType
+            }).then(() => {
+                msgLog("voicetalk success");
+            }, (oError) => {
+                msgLog("voicetalk failed.");
+            });
+        }, (oError) => {
+            msgLog("get Two-Way audio url failed.");
+        });
+    }
+	
+    function stopvoicetalk () {
+        WebVideoCtrl.I_StopAudioPlay().then(() => {
+            msgLog("stop voicetalk success");
+        }, () => {
+            msgLog("stop voicetalk failed.");
+        });
+    }
+	
+    function stopPlay () {
+        WebVideoCtrl.I_Stop(iWind).then(() => {
+            msgLog("stop success");
+        }, (oError) => {
+            msgLog("stop failed: " + iWind);
+        });
+    }
+
+    function arrangeWindow (iWinType) {
+        WebVideoCtrl.I_ChangeWndNum(iWinType).then(() => {
+            msgLog("arrange window success");
+        }, (oError) => {
+            msgLog("arrange window failed");
+        });
+    }
+
+    function slow () {
+        WebVideoCtrl.I_PlaySlow(iWind).then(() => {
+            msgLog("slow success");
+        }, (oError) => {
+            msgLog("slow failed: " + iWind);
+        });
+    }
+
+    function fast () {
+        WebVideoCtrl.I_PlayFast(iWind).then(() => {
+            msgLog("fast success");
+        }, (oError) => {
+            msgLog("fast failed: " + iWind);
+        });
+    }
+
+    function openSound () {
+        WebVideoCtrl.I_OpenSound(iWind).then(() => {
+            msgLog("turn on audio success");
+        }, (oError) => {
+            msgLog("turn on audio failed: " + iWind);
+        });
+    }
+    
+	function closeSound () {
+        WebVideoCtrl.I_CloseSound(iWind).then(() => {
+            msgLog("turn off audio success");
+        }, (oError) => {
+            msgLog("turn off audio failed: " + iWind);
+        });
+    }
+
+    async function capturePicture() {
+        var szFileName = "img" + "_" + new Date().getTime();
+        var oLocalConfig = await WebVideoCtrl.I_GetLocalCfg();
+        var szCaptureFileFormat = "0";
+        if (oLocalConfig) {
+            szCaptureFileFormat = oLocalConfig.captureFileFormat;
+        }
+        szFileName += ("0" === szCaptureFileFormat) ? ".jpg": ".bmp";
+        WebVideoCtrl.I_CapturePic(szFileName, iWind).then(() => {
+            msgLog("capturePicture success");
+        }, (oError) => {
+            msgLog("capturePicture failed: " + iWind);
+        });
+    }
+    
+	function stopPlayAll () {
+        WebVideoCtrl.I_StopAllPlay().then(() => {
+            msgLog("stop all play success");
+        }, (oError) => {
+            msgLog("stop all play failed");
+        });
+    }
+    
+	function dateFormat(oDate, fmt) {
+        var o = {
+            "M+": oDate.getMonth() + 1, 
+            "d+": oDate.getDate(), 
+            "h+": oDate.getHours(), 
+            "m+": oDate.getMinutes(), 
+            "s+": oDate.getSeconds(), 
+            "q+": Math.floor((oDate.getMonth() + 3) / 3), 
+            "S": oDate.getMilliseconds()
+        };
+        if (/(y+)/.test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (oDate.getFullYear() + "").substr(4 - RegExp.$1.length));
+        }
+        for (var k in o) {
+            if (new RegExp("(" + k + ")").test(fmt)) {
+                fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+            }
+        }
+        return fmt;
+    }
+    
+	function record() {
+        var szTime = dateFormat(new Date(), "yyyyMMddhhmmssS");
+        var szFileName = "10.17.137.229_01_" + szTime;
+        WebVideoCtrl.I_StartRecord(szFileName, iWind).then(() => {
+            msgLog("record success");
+        }, (oError) => {
+            msgLog("record failed");
+        });
+    }
+
+    function stopRecord() {
+        WebVideoCtrl.I_StopRecord(iWind).then(() => {
+            msgLog("stop record success");
+        }, (oError) => {
+            msgLog("stop record failed");
+        });
+    }
+    
+	function fullSreen() {
+        WebVideoCtrl.I_FullScreen(true).then(() => {
+            msgLog("fullscreen success");
+        }, (oError) => {
+            msgLog("fullscreen failed");
+        });
+    }
+	
+	function checkUpdate () {
+        WebVideoCtrl.I_CheckPluginVersion().then((bFlag) => {
+            if (bFlag) {
+                msgLog("HCWebSDKPlugin has detected a new version.");
+            } else {
+                msgLog("HCWebSDKPlugin is currently the latest version.");
+            }
+        });
+    }
+
+    function clickOpenFileDlg(szElemID) {
+        WebVideoCtrl.I_OpenFileDlg(0).then((szDirPath) => {
+            if (szDirPath != -1 && szDirPath != "" && szDirPath != null) {
+                $("#" + szElemID).val(szDirPath);
+            }
+        }, (oError) => {
+            msgLog("Failed to open folder.");
+        });
+    }
+
+    var g_oLocalConfig = null;
+    function clickGetLocalCfg() {
+        WebVideoCtrl.I_GetLocalCfg().then((oLocalConfig) => {
+            g_oLocalConfig = oLocalConfig;
+            $("#recordPath").val(oLocalConfig.recordPath);
+            $("#previewPicPath").val(oLocalConfig.capturePath);
+            $("#playbackPicPath").val(oLocalConfig.playbackPicPath);
+            $("#playbackFilePath").val(oLocalConfig.playbackFilePath);
+            $("#captureFileFormat").val(oLocalConfig.captureFileFormat);
+            msgLog("get plugin configuration success.");
+        }, (oError) => {
+            msgLog("get plugin configuration failed.");
+        });
+    }
+
+    function clickSetLocalCfg() {
+        g_oLocalConfig.recordPath = $("#recordPath").val();
+        g_oLocalConfig.capturePath = $("#previewPicPath").val();
+        g_oLocalConfig.playbackPicPath = $("#playbackPicPath").val();
+        g_oLocalConfig.playbackFilePath = $("#playbackFilePath").val();
+        g_oLocalConfig.captureFileFormat = $("#captureFileFormat").val();
+        WebVideoCtrl.I_SetLocalCfg(g_oLocalConfig).then(() => {
+            msgLog("set plugin configuration success.");
+        }, (oError) => {
+            msgLog("set plugin configuration failed.");
+        });
+    }
+
+    window.onresize = function () {
+        WebVideoCtrl.I_Resize(600, 400);
+    };
+    </script>
+</body>
+</html>
